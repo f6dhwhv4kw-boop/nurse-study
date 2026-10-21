@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Nurse Study</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{margin:0;background:#eef5fa;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;color:#203047}
+
+header{background:linear-gradient(135deg,#1689bf,#3759b8);color:white;padding:30px 20px;text-align:center}
+
+h1{margin:0;font-size:29px}
+
+header p{margin:8px 0 0}
+
+main{max-width:540px;margin:auto;padding:20px}
+
+.card{background:white;border-radius:20px;padding:24px;box-shadow:0 5px 20px #1c426011}
+
+.progress{font-size:14px;color:#64748b;font-weight:bold}
+
+.bar{height:9px;background:#e2e8f0;border-radius:10px;margin:13px 0 25px;overflow:hidden}
+
+.fill{height:100%;background:#1689bf;width:0;transition:.3s}
+
+h2{font-size:21px;line-height:1.6;margin:15px 0 25px}
+
+.choice{display:block;width:100%;border:2px solid #e2e8f0;background:#fff;border-radius:13px;padding:16px;margin:11px 0;text-align:left;font-size:16px;color:#203047;cursor:pointer}
+
+.choice:disabled{opacity:1}
+
+.correct{background:#dcfce7!important;border-color:#22c55e!important}
+
+.wrong{background:#fee2e2!important;border-color:#ef4444!important}
+
+#feedback{display:none;background:#f1f5f9;padding:17px;border-radius:13px;margin-top:20px;line-height:1.7}
+
+#next{display:none}
+
+.primary{width:100%;border:none;background:#167db9;color:white;padding:17px;border-radius:13px;font-size:17px;font-weight:bold;margin-top:18px;cursor:pointer}
+
+#result{display:none;text-align:center}
+
+.score{font-size:55px;color:#1689bf;font-weight:bold;margin:20px 0}
+
+footer{text-align:center;color:#94a3b8;font-size:12px;margin:20px}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🩺 Nurse Study</h1>
+
+<p>看護師国家試験 学習アプリ</p>
+
+</header>
+
+<main>
+
+<div class="card" id="quiz">
+
+<div class="progress" id="progress"></div>
+
+<div class="bar"><div class="fill" id="fill"></div></div>
+
+<h2 id="question"></h2>
+
+<div id="choices"></div>
+
+<div id="feedback"></div>
+
+<button class="primary" id="next" onclick="nextQuestion()">次の問題へ →</button>
+
+</div>
+
+<div class="card" id="result">
+
+<h2>🎉 学習おつかれさま！</h2>
+
+<p>今回の正答率</p>
+
+<div class="score" id="score"></div>
+
+<p id="message"></p>
+
+<button class="primary" onclick="restart()">もう一度挑戦する</button>
+
+</div>
+
+<footer>© Nurse Study | 学習用サンプル問題</footer>
+
+</main>
+
+<script>
+
+const questions=[
+
+{
+
+q:"成人の正常な安静時呼吸数はどれか。",
+
+a:["4〜8回/分","12〜20回/分","25〜30回/分","35〜40回/分"],
+
+correct:1,
+
+exp:"成人の安静時呼吸数は一般的に12〜20回/分。呼吸数だけでなく、深さ・リズム・努力呼吸の有無も観察します。"
+
+},
+
+{
+
+q:"成人の正常な安静時心拍数の目安はどれか。",
+
+a:["20〜40回/分","60〜100回/分","120〜150回/分","160〜200回/分"],
+
+correct:1,
+
+exp:"成人の安静時心拍数は一般的に60〜100回/分が目安です。脈拍のリズムや強さも確認します。"
+
+},
+
+{
+
+q:"血液中で酸素を運搬する主な物質はどれか。",
+
+a:["アルブミン","ヘモグロビン","インスリン","フィブリノゲン"],
+
+correct:1,
+
+exp:"ヘモグロビンは赤血球に含まれるタンパク質で、酸素と結合して全身に運びます。"
+
+},
+
+{
+
+q:"インスリンを分泌する細胞はどれか。",
+
+a:["膵島α細胞","膵島β細胞","胃壁細胞","肝細胞"],
+
+correct:1,
+
+exp:"膵臓のランゲルハンス島β細胞からインスリンが分泌され、血糖値を下げる方向に働きます。"
+
+},
+
+{
+
+q:"成人の左右の肺の肺葉数の組合せで正しいのはどれか。",
+
+a:["右2葉・左2葉","右3葉・左2葉","右2葉・左3葉","右3葉・左3葉"],
+
+correct:1,
+
+exp:"右肺は上葉・中葉・下葉の3葉、左肺は上葉・下葉の2葉です。"
+
+},
+
+{
+
+q:"心臓から全身へ血液を送り出す部位はどれか。",
+
+a:["右心房","右心室","左心房","左心室"],
+
+correct:3,
+
+exp:"左心室は大動脈へ血液を送り、全身の組織に酸素を届けます。"
+
+},
+
+{
+
+q:"血液凝固に主に関係する血球成分はどれか。",
+
+a:["赤血球","血小板","好酸球","リンパ球"],
+
+correct:1,
+
+exp:"血小板は損傷した血管の部位に集まって一次止血に働きます。"
+
+},
+
+{
+
+q:"成人の体温調節中枢が存在する部位はどれか。",
+
+a:["延髄","小脳","視床下部","脊髄"],
+
+correct:2,
+
+exp:"視床下部は体温調節の中枢で、発汗や血管収縮などを調整します。"
+
+},
+
+{
+
+q:"腎臓の基本的な機能単位はどれか。",
+
+a:["ネフロン","肺胞","ニューロン","肝小葉"],
+
+correct:0,
+
+exp:"ネフロンは腎小体と尿細管からなり、ろ過・再吸収・分泌を通して尿を生成します。"
+
+},
+
+{
+
+q:"副交感神経が優位になったときの反応はどれか。",
+
+a:["心拍数の増加","瞳孔の散大","消化管運動の促進","気管支の拡張"],
+
+correct:2,
+
+exp:"副交感神経は休息と消化に関与し、一般に心拍数を低下させ、消化管運動を促進します。"
+
+}
+
+];
+
+let index=0;
+
+let points=0;
+
+let answered=false;
+
+function showQuestion(){
+
+answered=false;
+
+const q=questions[index];
+
+document.getElementById("progress").textContent=`第${index+1}問 / 全${questions.length}問`;
+
+document.getElementById("fill").style.width=`${index/questions.length*100}%`;
+
+document.getElementById("question").textContent=q.q;
+
+document.getElementById("feedback").style.display="none";
+
+document.getElementById("next").style.display="none";
+
+const area=document.getElementById("choices");
+
+area.innerHTML="";
+
+q.a.forEach((item,i)=>{
+
+const btn=document.createElement("button");
+
+btn.className="choice";
+
+btn.textContent=["A. ","B. ","C. ","D. "][i]+item;
+
+btn.onclick=()=>checkAnswer(i);
+
+area.appendChild(btn);
+
+});
+
+}
+
+function checkAnswer(selected){
+
+if(answered)return;
+
+answered=true;
+
+const q=questions[index];
+
+const correct=selected===q.correct;
+
+if(correct)points++;
+
+document.querySelectorAll(".choice").forEach((btn,i)=>{
+
+btn.disabled=true;
+
+if(i===q.correct)btn.classList.add("correct");
+
+else if(i===selected)btn.classList.add("wrong");
+
+});
+
+const feedback=document.getElementById("feedback");
+
+feedback.style.display="block";
+
+feedback.textContent=(correct?"✅ 正解！":"❌ 不正解")+" 正解："+["A","B","C","D"][q.correct]+"。 "+q.exp;
+
+document.getElementById("next").style.display="block";
+
+document.getElementById("next").textContent=index===questions.length-1?"結果を見る →":"次の問題へ →";
+
+document.getElementById("fill").style.width=`${(index+1)/questions.length*100}%`;
+
+}
+
+function nextQuestion(){
+
+index++;
+
+if(index<questions.length)showQuestion();
+
+else showResult();
+
+}
+
+function showResult(){
+
+document.getElementById("quiz").style.display="none";
+
+document.getElementById("result").style.display="block";
+
+const percent=Math.round(points/questions.length*100);
+
+document.getElementById("score").textContent=percent+"%";
+
+document.getElementById("message").textContent=
+
+`${questions.length}問中${points}問正解！ `+
+
+(percent===100?"全問正解！素晴らしい！":percent>=80?"よくできました！":"解説を復習して再挑戦しよう！");
+
+}
+
+function restart(){
+
+index=0;
+
+points=0;
+
+document.getElementById("quiz").style.display="block";
+
+document.getElementById("result").style.display="none";
+
+showQuestion();
+
+}
+
+showQuestion();
+
+</script>
+
+</body>
+
+</html>
